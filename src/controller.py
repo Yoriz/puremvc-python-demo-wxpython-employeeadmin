@@ -9,7 +9,7 @@ import puremvc.interfaces
 import model, view, main
 
 class StartupCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
-	def execute(self,note):
+	def execute(self, note):
 		self.facade.registerProxy(model.UserProxy())
 		self.facade.registerProxy(model.RoleProxy())
     
@@ -20,13 +20,13 @@ class StartupCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.
 		self.facade.registerMediator(view.RolePanelMediator(mainPanel.rolePanel))
 
 class AddRoleResultCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
-	def execute(self,note):
+	def execute(self, note):
 		result = note.getBody()
 		if not result:
 			self.facade.sendNotification(main.AppFacade.SHOW_DIALOG, "Role already exists for this user.")
 
 class DeleteUserCommand(puremvc.patterns.command.SimpleCommand, puremvc.interfaces.ICommand):
-	def execute(self,note):
+	def execute(self, note):
            user = note.getBody()
            userProxy = self.facade.retrieveProxy(model.UserProxy.NAME)
            roleProxy = self.facade.retrieveProxy(model.RoleProxy.NAME)

@@ -9,20 +9,20 @@ import controller, components
 
 class AppFacade(puremvc.patterns.facade.Facade):
 	
-	STARTUP	          = "startup"
-	NEW_USER          = "newUser"
-	DELETE_USER       = "deleteUser"
-	CANCEL_SELECTED   = "cancelSelected"
+	STARTUP	 = "startup"
+	NEW_USER = "newUser"
+	DELETE_USER = "deleteUser"
+	CANCEL_SELECTED = "cancelSelected"
 
-	USER_SELECTED     = "userSelected"
-	USER_ADDED        = "userAdded"
-	USER_UPDATED      = "userUpdated"
-	USER_DELETED      = "userDeleted"
+	USER_SELECTED = "userSelected"
+	USER_ADDED = "userAdded"
+	USER_UPDATED = "userUpdated"
+	USER_DELETED = "userDeleted"
 
-	ADD_ROLE          = "addRole"
-	ADD_ROLE_RESULT   = "addRoleResult"
+	ADD_ROLE = "addRole"
+	ADD_ROLE_RESULT = "addRoleResult"
 	
-	SHOW_DIALOG       =  "showDialog"
+	SHOW_DIALOG = "showDialog"
 	
 	
 	def __init__(self):
