@@ -4,10 +4,13 @@ By Toby de Havilland <toby.de.havilland@puremvc.org>
 Copyright(c) 2007-08 Toby de Havilland, Some rights reserved.
 """
 
+import model
+import enum
+import main
+import wx
+import vo
 import puremvc.interfaces
 import puremvc.patterns.mediator
-
-import model, enum, main, wx, vo
 
 class DialogMediator(puremvc.patterns.mediator.Mediator, puremvc.interfaces.IMediator):
     
@@ -179,7 +182,7 @@ class RolePanelMediator(puremvc.patterns.mediator.Mediator, puremvc.interfaces.I
 
     def onRemoveRole(self, evt):
         self.roleProxy.removeRoleFromUser(self.viewComponent.user, self.viewComponent.selectedRole)
-        self.viewComponent.updateRoleList(self.roleProxy.getUserRoles(self.viewComponent.user.username))
+        self.viewComponent.updateRoleList(self.roleProxy.getUserRoles(self.viewComponent.user.user_name))
 
     def listNotificationInterests(self):
         return [
@@ -195,12 +198,12 @@ class RolePanelMediator(puremvc.patterns.mediator.Mediator, puremvc.interfaces.I
     def handleNotification(self, note): 
         noteName = note.getName()    
 
-        if noteName ==     main.AppFacade.NEW_USER:
+        if noteName == main.AppFacade.NEW_USER:
             self.clearForm()
 
         elif noteName == main.AppFacade.USER_ADDED:
             self.viewComponent.user = note.getBody()
-            roleVO = vo.RoleVO(self.viewComponent.user.username)
+            roleVO = vo.RoleVO(self.viewComponent.user.user_name)
             self.roleProxy.addItem(roleVO)
             self.clearForm()
 
@@ -215,10 +218,10 @@ class RolePanelMediator(puremvc.patterns.mediator.Mediator, puremvc.interfaces.I
 
         elif noteName == main.AppFacade.USER_SELECTED:
             self.viewComponent.user = note.getBody()
-            self.viewComponent.updateRoleList(self.roleProxy.getUserRoles(self.viewComponent.user.username))
+            self.viewComponent.updateRoleList(self.roleProxy.getUserRoles(self.viewComponent.user.user_name))
 
         elif noteName == main.AppFacade.ADD_ROLE_RESULT:
-            self.viewComponent.updateRoleList(self.roleProxy.getUserRoles(self.viewComponent.user.username))
+            self.viewComponent.updateRoleList(self.roleProxy.getUserRoles(self.viewComponent.user.user_name))
         
     def clearForm(self):   
         self.viewComponent.user = None
