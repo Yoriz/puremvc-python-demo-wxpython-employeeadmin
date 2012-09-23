@@ -3,9 +3,9 @@ Created on 23 Sep 2012
 
 @author: Dave Wilson
 '''
-import wx
 from ObjectListView import ObjectListView, ColumnDefn
 from wx.lib.newevent import NewCommandEvent
+import wx
 
 columns = [ColumnDefn(title="Username", valueGetter="user_name",
                       minimumWidth=75),
