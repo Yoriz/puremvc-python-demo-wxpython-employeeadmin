@@ -6,6 +6,8 @@ Created on 23 Sep 2012
 
 from pubsub import pub
 
+AUTO_TOPIC = pub.AUTO_TOPIC
+
 class ObsClassAttr(object):
     __storage = {}
     def __init__(self, attribute_name):
@@ -41,8 +43,8 @@ if __name__ == '__main__':
     def call_back2(value):
         print "Call_back2: %s" % value
         
-    def call_back_any(value, topic=pub.AUTO_TOPIC):
-        """callback can receive optional topic=pub.AUTO_TOPIC to find out
+    def call_back_any(value, topic=AUTO_TOPIC):
+        """callback can receive optional topic=AUTO_TOPIC to find out
         what the received topic is"""
         print "call_back_any: %s - %s" %(value, topic.getNameTuple()[1])
         
