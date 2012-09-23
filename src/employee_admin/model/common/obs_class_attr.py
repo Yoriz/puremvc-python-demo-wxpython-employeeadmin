@@ -46,14 +46,14 @@ if __name__ == '__main__':
     def call_back_any(value, topic=AUTO_TOPIC):
         """callback can receive optional topic=AUTO_TOPIC to find out
         what the received topic is"""
-        print "call_back_any: %s - %s" %(value, topic.getNameTuple()[1])
+        print "call_back_any: %s - %s" % (value, topic.getNameTuple()[1])
         
     class TestModel(object):
         
         obs_field1 = ObsClassAttr("obs_field1")
         obs_field2 = ObsClassAttr("obs_field2")
         
-        def __init__(self, obs_field1= "", obs_field2= ""):
+        def __init__(self, obs_field1="", obs_field2=""):
             self.obs_field1 = obs_field1
             self.obs_field2 = obs_field2
             
@@ -63,7 +63,4 @@ if __name__ == '__main__':
     obs_any(test_model, call_back_any)
     
     test_model.obs_field1 = "field1 new value"
-    test_model.obs_field2 = "field2 new value"
-    
-    
-        
+    test_model.obs_field2 = "field2 new value"    
