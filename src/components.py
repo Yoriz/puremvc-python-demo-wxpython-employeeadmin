@@ -4,107 +4,47 @@ By Toby de Havilland <toby.de.havilland@puremvc.org>
 Copyright(c) 2007-08 Toby de Havilland, Some rights reserved.
 """
 
+from ObjectListView import ObjectListView, ColumnDefn
 import enum
 import wx
-import wx.grid
 
 class WxApp(wx.App):
-    
-    appFrame = None
+    def __init__(self, redirect=False, filename=None,
+            useBestVisual=False, clearSigInt=False):
+        wx.App.__init__(self, redirect, filename, useBestVisual,
+            clearSigInt)
+        self.appFrame = AppFrame(None, title="PureMVC Demo",
+                                 style=wx.CLOSE_BOX | wx.CAPTION)
+        self.appFrame.Show()
     
     def OnInit(self):
-        self.appFrame = AppFrame()
-        self.appFrame.Show()
-        #self.SetTopWindow(self.frame)
-        
         return True
+
 
 class AppFrame(wx.Frame):
     
-    userForm = None
-    userList = None
-    rolePanel = None
-    
-    def __init__(self):
-        wx.Frame.__init__(self, parent=None, id= -1, title="PureMVC Demo", size=(660, 535))
-        self.rolePanel = RolePanel(self)
-        self.userList = UserList(self)
-        self.userForm = UserForm(self)
-    
-class RolePanel(wx.Panel):
-    
-    evt_ADD_ROLE = wx.NewEventType()
-    EVT_ADD_ROLE = wx.PyEventBinder(evt_ADD_ROLE, 1)
-    
-    evt_REMOVE_ROLE = wx.NewEventType()
-    EVT_REMOVE_ROLE = wx.PyEventBinder(evt_REMOVE_ROLE, 2)
-
-    user = None
-    selectedRole = None
-    
-    roleList = None
-    roleCombo = None
-    addBtn = None
-    removeBtn = None
-    
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=1, pos=(330, 220), size=(330, 300))
-        #self.SetBackgroundColour('Red')
+    def __init__(self, *args, **kwargs):
+        super(AppFrame, self).__init__(*args, **kwargs)
+        panel = wx.Panel(self)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        panel.SetSizer(sizer)
+        self.user_list = UserList(panel, style=wx.BORDER_THEME | 
+                                  wx.TAB_TRAVERSAL)
+        self.user_form = UserForm(panel, style=wx.BORDER_THEME | 
+                                  wx.TAB_TRAVERSAL)
+        self.role_panel = RolePanel(panel, style=wx.BORDER_THEME | 
+                                    wx.TAB_TRAVERSAL)
+        sizer.AddSpacer(8, -1)
+        sizer.Add(self.user_list, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.AddSpacer(8, -1)
+        sizer.Add(h_sizer, 1, wx.EXPAND)
+        h_sizer.Add(self.user_form, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        h_sizer.Add(self.role_panel, 0, wx.EXPAND | wx.RIGHT, 8)
+        sizer.AddSpacer(8, -1)
         
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        hboxBottom = wx.BoxSizer(wx.HORIZONTAL)
-        
-        self.roleList = wx.ListBox(self, -1, size=(300, 200))
-        self.roleList.Bind(wx.EVT_LISTBOX, self.onListClick)
-        self.roleCombo = wx.ComboBox(self, -1, size=wx.DefaultSize)
-        self.roleCombo.Bind(wx.EVT_COMBOBOX, self.onComboClick)
-        self.addBtn = wx.Button(self, -1, "Add")
-        self.addBtn.Disable()
-        self.addBtn.Bind(wx.EVT_BUTTON, self.onAdd)
-        self.removeBtn = wx.Button(self, -1, "Remove")
-        self.removeBtn.Disable()
-        self.removeBtn.Bind(wx.EVT_BUTTON, self.onRemove)
-        
-        hboxBottom.Add(self.roleCombo, 0, wx.RIGHT, 10)
-        hboxBottom.Add(self.addBtn, 0, wx.RIGHT, 10)
-        hboxBottom.Add(self.removeBtn, 0, wx.RIGHT, 10)
-        vbox.Add(self.roleList, 1, wx.TOP | wx.CENTER, 10)
-        vbox.Add(hboxBottom, 0, wx.TOP | wx.BOTTOM | wx.ALIGN_RIGHT, 10)
-
-        self.SetAutoLayout(True)
-        self.SetSizer(vbox)
         self.Layout()
-    
-    def updateRoleList(self, items):
-        self.roleList.Clear()
-        self.roleList.AppendItems(items)
-    
-    def updateRoleCombo(self, choices, default):
-        self.roleCombo.Clear()
-        self.roleCombo.AppendItems(choices)
-        self.roleCombo.SetValue(default)
-    
-    def onComboClick(self, evt):
-        if not self.roleCombo.GetValue() == enum.ROLE_NONE_SELECTED:
-            self.addBtn.Enable()
-        else:
-            self.addBtn.Disable()
-        self.roleList.SetSelection(-1)
-        self.selectedRole = self.roleCombo.GetValue()
-    
-    def onListClick(self, evt):
-        if not self.roleList.GetSelection() == enum.ROLE_NONE_SELECTED:
-            self.removeBtn.Enable()
-        else:
-            self.removeBtn.Disable()
-        self.roleCombo.SetValue(enum.ROLE_NONE_SELECTED)
-        self.selectedRole = self.roleList.GetStringSelection()
-    
-    def onAdd(self, evt):
-        self.GetEventHandler().ProcessEvent(wx.PyCommandEvent(self.evt_ADD_ROLE, self.GetId()))
-    
-    def onRemove(self, evt):
-        self.GetEventHandler().ProcessEvent(wx.PyCommandEvent(self.evt_REMOVE_ROLE, self.GetId()))
+        sizer.Fit(self)
 
 class UserList(wx.Panel):
     
@@ -124,36 +64,54 @@ class UserList(wx.Panel):
     users = None
     selectedUser = None
     
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=2, size=(660, 220))
-        #self.SetBackgroundColour('Blue')
+    def __init__(self, *args, **kwargs):
+        super(UserList, self).__init__(*args, **kwargs)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(sizer)
         
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        hboxBottom = wx.BoxSizer(wx.HORIZONTAL)
-        
-        self.userGrid = wx.grid.Grid(self, -1,)
-        self.userGrid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.onSelect)
-        self.userGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.onSelect)
-        self.userGrid.CreateGrid(6, 6)
-        self.userGrid.SetColLabelValue(0, "Username")
-        self.userGrid.SetColLabelValue(1, "First Name")
-        self.userGrid.SetColLabelValue(2, "Last Name")
-        self.userGrid.SetColLabelValue(3, "Email")
-        self.userGrid.SetColLabelValue(4, "Department")
-        self.userGrid.SetColLabelValue(5, "Password")
-        
-        self.newBtn = wx.Button(self, -1, "New")
-        self.newBtn.Bind(wx.EVT_BUTTON, self.onNew)
-        self.deleteBtn = wx.Button(self, -1, "Delete")
-        self.deleteBtn.Bind(wx.EVT_BUTTON, self.onDelete)
-        
-        hboxBottom.Add(self.newBtn, 0, wx.RIGHT, 10)
-        hboxBottom.Add(self.deleteBtn, 0, wx.RIGHT, 10)
-        vbox.Add(self.userGrid, 0, wx.ALL | wx.ALIGN_LEFT, 10)
-        vbox.Add(hboxBottom, 0, wx.TOP | wx.BOTTOM | wx.RIGHT | wx.ALIGN_RIGHT, 10)
+        users_label = wx.StaticText(self, label="Users")
+        font = users_label.GetFont()
+        font.MakeBold()
+        users_label.SetFont(font)
+        self.users_qty_label = wx.StaticText(self, label="0")
 
-        self.SetAutoLayout(True)
-        self.SetSizer(vbox)
+        self.user_list = ObjectListView(self, size=(-1, 150),
+                                        style=wx.LC_REPORT | 
+                                        wx.LC_SINGLE_SEL | wx.LC_HRULES | 
+                                        wx.LC_VRULES)
+        columns = [ColumnDefn(title="Username", valueGetter="user_name",
+                          minimumWidth=100),
+                   ColumnDefn(title="First Name", valueGetter="first_name",
+                          minimumWidth=100),
+                   ColumnDefn(title="Last Name", valueGetter="last_name",
+                          minimumWidth=100),
+                   ColumnDefn(title="Email", valueGetter="email",
+                          minimumWidth=100),
+                   ColumnDefn(title="Department", valueGetter="departmwnr",
+                          minimumWidth=100, isSpaceFilling=True)]
+        self.user_list.SetColumns(columns)
+        self.user_list.AutoSizeColumns()
+        
+        self.delete_btn = wx.Button(self, wx.ID_DELETE)
+        self.delete_btn.Bind(wx.EVT_BUTTON, self.onDelete)
+        self.new_btn = wx.Button(self, wx.ID_NEW)
+        self.new_btn.Bind(wx.EVT_BUTTON, self.onNew)
+        
+        sizer.AddSpacer(8, -1)
+        label_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(label_sizer, 0 , wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        label_sizer.Add(users_label)
+        label_sizer.AddStretchSpacer(1)
+        label_sizer.Add(self.users_qty_label)
+        
+        sizer.AddSpacer(8, -1)
+        sizer.Add(self.user_list, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        sizer.AddSpacer(8, -1)
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(hsizer, 0, wx.ALIGN_RIGHT, 8)
+        hsizer.Add(self.delete_btn, 0, wx.RIGHT, 8)
+        hsizer.Add(self.new_btn, 0, wx.RIGHT, 8)
+        sizer.AddSpacer(8, -1)
         self.Layout()
     
     def updateUserGrid(self, users):
@@ -192,13 +150,13 @@ class UserForm(wx.Panel):
     
     evt_ADD = wx.NewEventType()
     EVT_ADD = wx.PyEventBinder(evt_ADD, 1)
-    evt_UPDATE      = wx.NewEventType()
+    evt_UPDATE = wx.NewEventType()
     EVT_UPDATE = wx.PyEventBinder(evt_UPDATE, 1)
-    evt_CANCEL      = wx.NewEventType()
+    evt_CANCEL = wx.NewEventType()
     EVT_CANCEL = wx.PyEventBinder(evt_CANCEL, 1)
 
-    MODE_ADD      = "modeAdd";
-    MODE_EDIT      = "modeEdit";
+    MODE_ADD = "modeAdd";
+    MODE_EDIT = "modeEdit";
     
     user = None
     mode = None
@@ -210,74 +168,70 @@ class UserForm(wx.Panel):
     passwordInput = None
     confirmInput = None
     departmentCombo = None
-    addBtn = None
+    add_btn = None
     cancelBtn = None
     
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=3, pos=(0, 220), size=(330, 300))
-        #self.SetBackgroundColour('Green')
+    def __init__(self, *args, **kwargs):
+        super(UserForm, self).__init__(*args, **kwargs)
         
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        hboxBottom = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(sizer)
         
-        grid = wx.GridSizer(7, 2, 6, 0)
-        st1 = wx.StaticText(self, -1, 'First Name')
-        self.firstInput = wx.TextCtrl(self, -1)
-        self.firstInput.Bind(wx.EVT_KEY_UP, self.checkValid)
-        grid.Add(st1, 0, wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.firstInput, 0, wx.ALIGN_RIGHT | wx.EXPAND)
+        profile_label = wx.StaticText(self, label="User Profile")
+        font = profile_label.GetFont()
+        font.MakeBold()
+        profile_label.SetFont(font)
+        self.username_label = wx.StaticText(self, label="")
         
-        st2 = wx.StaticText(self, -1, 'Last Name')
-        self.lastInput = wx.TextCtrl(self, -1)
-        self.lastInput.Bind(wx.EVT_KEY_UP, self.checkValid)
-        grid.Add(st2, 0, wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.lastInput, 0, wx.ALIGN_RIGHT | wx.EXPAND)
+        sizer.AddSpacer(8, -1)
+        label_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(label_sizer, 0 , wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        label_sizer.Add(profile_label)
+        label_sizer.AddStretchSpacer(1)
+        label_sizer.Add(self.username_label)
         
-        st3 = wx.StaticText(self, -1, 'Email')
-        self.emailInput = wx.TextCtrl(self, -1)
-        self.emailInput.Bind(wx.EVT_KEY_UP, self.checkValid)
-        grid.Add(st3, 0, wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.emailInput, 0, wx.ALIGN_RIGHT | wx.EXPAND)
+        self.flex_gridsizer = wx.FlexGridSizer(cols=2, vgap=5, hgap=8)
+        sizer.AddSpacer(8, -1)
+        sizer.Add(self.flex_gridsizer, 0,
+                  wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER, 8)
+        sizer.AddSpacer(8, -1)
         
-        st4 = wx.StaticText(self, -1, 'Username')
-        self.usernameInput = wx.TextCtrl(self, -1)
-        self.usernameInput.Bind(wx.EVT_KEY_UP, self.checkValid)
-        grid.Add(st4, 0, wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.usernameInput, 0, wx.ALIGN_RIGHT | wx.EXPAND)
-        
-        st5 = wx.StaticText(self, -1, 'Password')
-        self.passwordInput = wx.TextCtrl(self, -1, style=wx.TE_PASSWORD)
-        self.passwordInput.Bind(wx.EVT_KEY_UP, self.checkValid)
-        grid.Add(st5, 0, wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.passwordInput, 0, wx.ALIGN_RIGHT | wx.EXPAND)
-        
-        st6 = wx.StaticText(self, -1, 'Confirm')
-        self.confirmInput = wx.TextCtrl(self, -1, style=wx.TE_PASSWORD)
-        self.confirmInput.Bind(wx.EVT_KEY_UP, self.checkValid)
-        grid.Add(st6, 0, wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.confirmInput, 0, wx.ALIGN_RIGHT | wx.EXPAND)
-        
-        st7 = wx.StaticText(self, -1, 'Department')
-        self.departmentCombo = wx.ComboBox(self, -1)
-        self.firstInput.Bind(wx.EVT_COMBOBOX, self.checkValid)
-        grid.Add(st7, 0, wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.departmentCombo, 0, wx.ALIGN_RIGHT | wx.EXPAND)
-        
-        self.addBtn = wx.Button(self, -1, "Add User", size=(100, -1))
-        self.addBtn.Disable()
-        self.addBtn.Bind(wx.EVT_BUTTON, self.onAdd)
-        self.cancelBtn = wx.Button(self, -1, "Cancel")
+        ctrl_size = (200, -1)
+        self.first_input = wx.TextCtrl(self, size=ctrl_size)
+        self.create_field("First name", self.first_input)
+        self.last_input = wx.TextCtrl(self, size=ctrl_size)
+        self.create_field("Last name", self.last_input)
+        self.email_input = wx.TextCtrl(self, size=ctrl_size)
+        self.create_field("Email", self.email_input)
+        self.username_input = wx.TextCtrl(self, size=ctrl_size)
+        self.create_field("Username*", self.username_input)
+        self.password_input = wx.TextCtrl(self, size=ctrl_size)
+        self.create_field("Password*", self.password_input)
+        self.confirm_input = wx.TextCtrl(self, size=ctrl_size)
+        self.create_field("Confirm Password*", self.confirm_input)
+        self.department_combo = wx.ComboBox(self, size=ctrl_size)
+        self.create_field("Department*", self.department_combo)
+         
+        self.add_btn = wx.Button(self, -1, "Add User", size=(100, -1))
+        self.add_btn.Disable()
+        self.add_btn.Bind(wx.EVT_BUTTON, self.onAdd)
+        self.cancelBtn = wx.Button(self, wx.ID_CANCEL)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.onCancel)
         
-        vbox.Add(grid, 0, wx.ALL | wx.EXPAND, 10)
-        
-        hboxBottom.Add(self.addBtn, 0, wx.RIGHT, 10)
-        hboxBottom.Add(self.cancelBtn, 0, wx.RIGHT, 10)
-        vbox.Add(hboxBottom, 0, wx.BOTTOM | wx.ALIGN_RIGHT, 10)
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(hsizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        hsizer.AddStretchSpacer(1)
+        hsizer.Add(self.add_btn, 0, wx.RIGHT, 8)
+        hsizer.Add(self.cancelBtn, 0, wx.RIGHT)
+        sizer.AddSpacer(8, -1)
 
-        self.SetAutoLayout(True)
-        self.SetSizer(vbox)
         self.Layout()
+        
+    def create_field(self, field_name, ctrl):
+        label = wx.StaticText(self, label=field_name)
+        self.flex_gridsizer.Add(label, flag=wx.ALIGN_CENTER_VERTICAL | 
+                                                                wx.ALIGN_RIGHT)
+        self.flex_gridsizer.Add(ctrl, flag=wx.ALIGN_CENTER)
     
     def updateUser(self, user):
         self.user = user
@@ -298,9 +252,9 @@ class UserForm(wx.Panel):
     def updateMode(self, mode):
         self.mode = mode
         if self.mode == self.MODE_ADD:
-            self.addBtn.SetLabel("Add User")
+            self.add_btn.SetLabel("Add User")
         else:
-            self.addBtn.SetLabel("Update User")
+            self.add_btn.SetLabel("Update User")
         
     def onAdd(self, evt):        
         if self.mode == self.MODE_ADD:
@@ -314,9 +268,102 @@ class UserForm(wx.Panel):
         
     def checkValid(self, evt=None):
         if self.enableSubmit(self.usernameInput.GetValue(), self.passwordInput.GetValue(), self.confirmInput.GetValue(), self.departmentCombo.GetValue()):
-            self.addBtn.Enable()
+            self.add_btn.Enable()
         else:
-            self.addBtn.Disable()
+            self.add_btn.Disable()
     
     def enableSubmit(self, u, p, c, d):
         return (len(u) > 0 and len(p) > 0 and p == c and not d == enum.DEPT_NONE_SELECTED)
+
+class RolePanel(wx.Panel):
+    
+    evt_ADD_ROLE = wx.NewEventType()
+    EVT_ADD_ROLE = wx.PyEventBinder(evt_ADD_ROLE, 1)
+    
+    evt_REMOVE_ROLE = wx.NewEventType()
+    EVT_REMOVE_ROLE = wx.PyEventBinder(evt_REMOVE_ROLE, 2)
+
+    user = None
+    selectedRole = None
+    
+    role_list = None
+    role_combo = None
+    add_btn = None
+    remove_btn = None
+    
+    def __init__(self, *args, **kwargs):
+        super(RolePanel, self).__init__(*args, **kwargs)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(sizer)
+        
+        roles_label = wx.StaticText(self, label="User Roles")
+        font = roles_label.GetFont()
+        font.MakeBold()
+        roles_label.SetFont(font)
+        self.given_name_label = wx.StaticText(self, label="")
+        sizer.AddSpacer(8, -1)
+        label_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(label_sizer, 0 , wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        label_sizer.Add(roles_label)
+        label_sizer.AddStretchSpacer(1)
+        label_sizer.Add(self.given_name_label)
+        
+        self.role_list = wx.ListBox(self, size=(300, -1))
+        self.role_list.Bind(wx.EVT_LISTBOX, self.onListClick)
+        self.role_combo = wx.ComboBox(self)
+        self.role_combo.Bind(wx.EVT_COMBOBOX, self.onComboClick)
+        self.add_btn = wx.Button(self, -1, "Add")
+        self.add_btn.Disable()
+        self.add_btn.Bind(wx.EVT_BUTTON, self.onAdd)
+        self.remove_btn = wx.Button(self, -1, "Remove")
+        self.remove_btn.Disable()
+        self.remove_btn.Bind(wx.EVT_BUTTON, self.onRemove)
+        
+        sizer.AddSpacer(8, -1)
+        sizer.Add(self.role_list, 1, wx.EXPAND | wx.LEFT | wx.RIGHT , 8)
+        sizer.AddSpacer(8, -1)
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(hsizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        combo_sizer = wx.BoxSizer(wx.VERTICAL)
+        hsizer.Add(combo_sizer, 1, wx.EXPAND)
+        combo_sizer.Add(self.role_combo, 0, wx.EXPAND)
+        hsizer.Add(self.add_btn, 0, wx.LEFT, 8)
+        hsizer.Add(self.remove_btn, 0, wx.LEFT, 8)
+        sizer.AddSpacer(8, -1)
+        self.Layout()
+    
+    def updateRoleList(self, items):
+        self.role_list.Clear()
+        self.role_list.AppendItems(items)
+    
+    def updateRoleCombo(self, choices, default):
+        self.role_combo.Clear()
+        self.role_combo.AppendItems(choices)
+        self.role_combo.SetValue(default)
+    
+    def onComboClick(self, evt):
+        if not self.role_combo.GetValue() == enum.ROLE_NONE_SELECTED:
+            self.add_btn.Enable()
+        else:
+            self.add_btn.Disable()
+        self.role_list.SetSelection(-1)
+        self.selectedRole = self.role_combo.GetValue()
+    
+    def onListClick(self, evt):
+        if not self.role_list.GetSelection() == enum.ROLE_NONE_SELECTED:
+            self.remove_btn.Enable()
+        else:
+            self.remove_btn.Disable()
+        self.role_combo.SetValue(enum.ROLE_NONE_SELECTED)
+        self.selectedRole = self.role_list.GetStringSelection()
+    
+    def onAdd(self, evt):
+        self.GetEventHandler().ProcessEvent(wx.PyCommandEvent(self.evt_ADD_ROLE, self.GetId()))
+    
+    def onRemove(self, evt):
+        self.GetEventHandler().ProcessEvent(wx.PyCommandEvent(self.evt_REMOVE_ROLE, self.GetId()))
+    
+if __name__ == '__main__':
+    wxapp = WxApp(False)
+    wxapp.MainLoop()
+    
