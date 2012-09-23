@@ -7,14 +7,13 @@ from employee_admin.model.common.obs_class_attr import ObsClassAttr, obs_any, \
     AUTO_TOPIC
 from employee_admin.model.enum.dept_enum import DEPT_NONE_SELECTED
 
-class UserVo(object):
+class UserVO(object):
     
     user_name = ObsClassAttr("user_name")
     first_name = ObsClassAttr("first_name")
     last_name = ObsClassAttr("last_name")
     email = ObsClassAttr("email")
     password = ObsClassAttr("password")
-    department = ObsClassAttr("department")
     is_valid = ObsClassAttr("is_valid")
     given_name = ObsClassAttr("given_name")
 
