@@ -213,7 +213,6 @@ class UserForm(wx.Panel):
         self.create_field("Department*", self.department_combo)
          
         self.add_btn = wx.Button(self, -1, "Add User", size=(100, -1))
-        self.add_btn.Disable()
         self.add_btn.Bind(wx.EVT_BUTTON, self.onAdd)
         self.cancelBtn = wx.Button(self, wx.ID_CANCEL)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.onCancel)
@@ -313,10 +312,8 @@ class RolePanel(wx.Panel):
         self.role_combo = wx.ComboBox(self)
         self.role_combo.Bind(wx.EVT_COMBOBOX, self.onComboClick)
         self.add_btn = wx.Button(self, -1, "Add")
-        self.add_btn.Disable()
         self.add_btn.Bind(wx.EVT_BUTTON, self.onAdd)
         self.remove_btn = wx.Button(self, -1, "Remove")
-        self.remove_btn.Disable()
         self.remove_btn.Bind(wx.EVT_BUTTON, self.onRemove)
         
         sizer.AddSpacer(8, -1)
