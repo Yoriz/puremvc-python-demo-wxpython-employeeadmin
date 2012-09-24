@@ -7,6 +7,9 @@ from ObjectListView import ObjectListView, ColumnDefn
 from wx.lib.newevent import NewCommandEvent
 import wx
 
+def get_dept_value(dept_enum_item):
+    return dept_enum_item.value
+
 columns = [ColumnDefn(title="Username", valueGetter="user_name",
                       minimumWidth=75),
            ColumnDefn(title="First Name", valueGetter="first_name",
@@ -16,17 +19,16 @@ columns = [ColumnDefn(title="Username", valueGetter="user_name",
            ColumnDefn(title="Email", valueGetter="email",
                       minimumWidth=90),
            ColumnDefn(title="Department", valueGetter="department",
-                      minimumWidth=100),
+                      minimumWidth=100, stringConverter = get_dept_value),
            ColumnDefn(title="", valueGetter="*filler*",
                       minimumWidth=0, isSpaceFilling=True)]
+
 
 class OLVList(ObjectListView):
     def __init__(self, *args, **kwargs):
         super(OLVList, self).__init__(*args, **kwargs)
         self.SetEmptyListMsg("No Records")
         self.useAlternateBackColors = False
-        self.SetColumns(columns)
-        self.AutoSizeColumns()
 
 class UserList(wx.Panel):
     
@@ -54,11 +56,14 @@ class UserList(wx.Panel):
         label_sizer.Add(self.users_qty_label)
         
         sizer.AddSpacer(8, -1)
-        self.user_list = OLVList(self, size=(-1, 150),style=wx.LC_REPORT | 
+        self.user_list = OLVList(self, size=(435, 150),style=wx.LC_REPORT | 
                                 wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
         self.user_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_selection)
         self.user_list.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.on_selection)
         sizer.Add(self.user_list, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        
+        self.user_list.SetColumns(columns)
+        self.user_list.AutoSizeColumns()
         
         sizer.AddSpacer(8, -1)
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -80,7 +85,7 @@ class UserList(wx.Panel):
         
     def on_update_delete(self, event):
         event_ob = event.EventObject
-        has_selection = self.user_list.GetSelectedObject() != None
+        has_selection = bool(self.user_list.GetSelectedObject())
 
         if event_ob.Enabled != has_selection:
             event.Enable(not event_ob.Enabled)
@@ -98,6 +103,11 @@ class UserList(wx.Panel):
         event.Skip()
         
     def on_delete(self, event):
+        dlg = wx.MessageDialog(self, "Are you sure", "Confirm delete", wx.YES_NO)
+        answer = dlg.ShowModal()
+        dlg.Destroy()
+        if answer == wx.ID_NO:
+            return
         selected_obj = self.user_list.GetSelectedObject()
         self.user_list.DeselectAll()
         evt = self.DeleteEvent(self.Id, selected_obj=selected_obj)
@@ -113,8 +123,12 @@ if __name__ == '__main__':
     from employee_admin.model.common.test_user_list import test_user_list_data
     wxapp= wx.App(False)
     frame = wx.Frame(None)
+    fsizer = wx.BoxSizer(wx.VERTICAL)
+    frame.SetSizer(fsizer)
     panel = UserList(frame)
-    panel.update_user_list(test_user_list_data)
+    fsizer.Add(panel, 1, wx.EXPAND)
     frame.Layout()
+    frame.Fit()
     frame.Show()
+    panel.update_user_list(test_user_list_data)
     wxapp.MainLoop()
