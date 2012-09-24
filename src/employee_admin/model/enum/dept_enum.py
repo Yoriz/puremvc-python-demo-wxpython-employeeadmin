@@ -19,5 +19,9 @@ dept_combo_list = dept_list[:]
 dept_combo_list.insert(0, DEPT_NONE_SELECTED)
 
 
+print [item for item in dept_combo_list if item.ordinal == 1][0]
+print dept_combo_list.index(DEPT_SALES)
+
+
 
     
