@@ -82,17 +82,18 @@ class UserList(wx.Panel):
         self.Layout()
         
         self.users = []
+        self.selected_user = None
         
     def on_update_delete(self, event):
         event_ob = event.EventObject
-        has_selection = bool(self.user_list.GetSelectedObject())
+        has_selection = bool(self.selected_user)
 
         if event_ob.Enabled != has_selection:
             event.Enable(not event_ob.Enabled)
             
     def on_selection(self, event):
-        selected_obj = self.user_list.GetSelectedObject()
-        evt = self.SelectEvent(self.Id, selected_obj=selected_obj)
+        self.selected_user = self.user_list.GetSelectedObject()
+        evt = self.SelectEvent(self.Id)
         wx.PostEvent(self, evt)
         event.Skip()
         
