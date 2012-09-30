@@ -141,6 +141,20 @@ class UserForm(wx.Panel):
         
     def on_combo(self, user_field, event):
         setattr(self.user, user_field, event.ClientData)
+        
+    def on_submit(self, event):   
+        if self.mode == self.MODE_ADD:
+            evt = self.AddEvent(self.Id)
+        else:
+            evt = self.UpdateEvent(self.Id)
+        
+        wx.PostEvent(self, evt)
+        event.Skip()
+    
+    def on_cancel(self, event):
+        evt = self.CancelEvent(self.Id)
+        wx.PostEvent(self, evt)
+        event.Skip()
 
     def set_department_list(self, dept_list_enum):
         self.department_combo.Clear()
@@ -180,19 +194,7 @@ class UserForm(wx.Panel):
         self.populate_from_user()
         self.user = None
 
-    def on_submit(self, event):   
-        if self.mode == self.MODE_ADD:
-            evt = self.AddEvent(self.Id)
-        else:
-            evt = self.UpdateEvent(self.Id)
-        
-        wx.PostEvent(self, evt)
-        event.Skip()
     
-    def on_cancel(self, event):
-        evt = self.CancelEvent(self.Id)
-        wx.PostEvent(self, evt)
-        event.Skip()
         
 if __name__ == '__main__':
     from employee_admin.model.common.test_user_list import test_user_list_data
