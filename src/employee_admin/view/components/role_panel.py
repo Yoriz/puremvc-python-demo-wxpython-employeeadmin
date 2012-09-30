@@ -3,14 +3,13 @@ Created on 30 Sep 2012
 
 @author: Dave Wilson
 '''
-import wx
 
-from employee_admin.model.enum.role_enum import role_combo_list,\
+from employee_admin.model.enum.role_enum import role_combo_list, \
     ROLE_NONE_SELECTED
 from employee_admin.model.vo.user_role_vo import UserRoleVo
 from employee_admin.model.vo.user_vo import UserVo
 from wx.lib.newevent import NewCommandEvent
-
+import wx
 
 class RolePanel(wx.Panel):
     

@@ -3,11 +3,10 @@ Created on 30 Sep 2012
 
 @author: Dave Wilson
 '''
-import wx
+from employee_admin.view.components.role_panel import RolePanel
 from employee_admin.view.components.user_form import UserForm
 from employee_admin.view.components.user_list import UserList
-from employee_admin.view.components.role_panel import RolePanel
-
+import wx
 
 class AppFrame(wx.Frame):
     
@@ -35,7 +34,7 @@ class AppFrame(wx.Frame):
         sizer.Fit(self)
         
 if __name__ == '__main__':
-    wxapp= wx.App(False)
-    frame = AppFrame(None, title= "Employee Admin")
+    wxapp = wx.App(False)
+    frame = AppFrame(None, title="Employee Admin")
     frame.Show()
     wxapp.MainLoop()

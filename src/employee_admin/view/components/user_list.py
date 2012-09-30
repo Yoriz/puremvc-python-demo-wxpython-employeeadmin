@@ -3,6 +3,7 @@ Created on 23 Sep 2012
 
 @author: Dave Wilson
 '''
+
 from ObjectListView import ObjectListView, ColumnDefn
 from wx.lib.newevent import NewCommandEvent
 import wx
@@ -19,7 +20,7 @@ columns = [ColumnDefn(title="Username", valueGetter="user_name",
            ColumnDefn(title="Email", valueGetter="email",
                       minimumWidth=90),
            ColumnDefn(title="Department", valueGetter="department",
-                      minimumWidth=100, stringConverter = get_dept_value),
+                      minimumWidth=100, stringConverter=get_dept_value),
            ColumnDefn(title="", valueGetter="*filler*",
                       minimumWidth=0, isSpaceFilling=True)]
 
@@ -56,7 +57,7 @@ class UserList(wx.Panel):
         label_sizer.Add(self.users_qty_label)
         
         sizer.AddSpacer(8, -1)
-        self.user_list = OLVList(self, size=(435, 150),style=wx.LC_REPORT | 
+        self.user_list = OLVList(self, size=(435, 150), style=wx.LC_REPORT | 
                                 wx.LC_SINGLE_SEL | wx.LC_HRULES | wx.LC_VRULES)
         self.user_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_selection)
         self.user_list.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.on_selection)
@@ -122,7 +123,7 @@ class UserList(wx.Panel):
           
 if __name__ == '__main__':
     from employee_admin.model.common.test_user_list import test_user_list_data
-    wxapp= wx.App(False)
+    wxapp = wx.App(False)
     frame = wx.Frame(None)
     fsizer = wx.BoxSizer(wx.VERTICAL)
     frame.SetSizer(fsizer)

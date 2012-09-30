@@ -50,10 +50,10 @@ class UserVO(object):
             self.calc_is_valid()
         
     def calc_is_valid(self):
-        self.is_valid =  all([self.user_name, self.password,
+        self.is_valid = all([self.user_name, self.password,
                               self.department != enum.DEPT_NONE_SELECTED])
     
     def calc_given_name(self):
-        self.given_name =  "%s, %s" % (self.last_name, self.first_name)
+        self.given_name = "%s, %s" % (self.last_name, self.first_name)
         
 

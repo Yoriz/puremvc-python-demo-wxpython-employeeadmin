@@ -152,9 +152,9 @@ class UserForm(wx.Panel):
         event.Skip()
     
     def on_cancel(self, event):
+        event.Skip()
         evt = self.CancelEvent(self.Id)
         wx.PostEvent(self, evt)
-        event.Skip()
 
     def set_department_list(self, dept_list_enum):
         self.department_combo.Clear()
