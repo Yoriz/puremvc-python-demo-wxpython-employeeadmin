@@ -4,9 +4,9 @@ Created on 23 Sep 2012
 @author: Dave Wilson
 '''
 
-from employee_admin.model.common.obs_class_attr import obs_attr
 from employee_admin.model.enum.dept_enum import dept_combo_list
 from employee_admin.model.vo.user_vo import UserVo
+from functools import partial
 from wx.lib.newevent import NewCommandEvent
 import wx
 
@@ -47,26 +47,31 @@ class UserForm(wx.Panel):
         
         ctrl_size = (200, -1)
         self.first_name_input = wx.TextCtrl(self, size=ctrl_size)
-        self.first_name_input.Bind(wx.EVT_TEXT, self.on_first_name_input)
+        self.first_name_input.Bind(wx.EVT_TEXT, partial(self.on_input,
+                                                        "first_name"))
         self.create_field("First name", self.first_name_input)
         
+        
         self.last_name_input = wx.TextCtrl(self, size=ctrl_size)
-        self.last_name_input.Bind(wx.EVT_TEXT, self.on_last_name_input)
+        self.last_name_input.Bind(wx.EVT_TEXT, partial(self.on_input,
+                                                       "last_name"))
         self.create_field("Last name", self.last_name_input)
         
         self.email_input = wx.TextCtrl(self, size=ctrl_size)
-        self.email_input.Bind(wx.EVT_TEXT, self.on_email_input)
+        self.email_input.Bind(wx.EVT_TEXT, partial(self.on_input, "email"))
         self.create_field("Email", self.email_input)
         
         self.username_input = wx.TextCtrl(self, size=ctrl_size)
-        self.username_input.Bind(wx.EVT_TEXT, self.on_username_input)
+        self.username_input.Bind(wx.EVT_TEXT, partial(self.on_input,
+                                                      "user_name"))
         self.username_input.Bind(wx.EVT_UPDATE_UI,
                                  self.on_update_username_input)
         self.create_field("Username*", self.username_input)
         
         self.password_input = wx.TextCtrl(self, size=ctrl_size,
                                           style=wx.TE_PASSWORD)
-        self.password_input.Bind(wx.EVT_TEXT, self.on_password_input)
+        self.password_input.Bind(wx.EVT_TEXT, partial(self.on_input,
+                                                      "password"))
         self.create_field("Password*", self.password_input)
         
         self.confirm_input = wx.TextCtrl(self, size=ctrl_size,
@@ -74,7 +79,8 @@ class UserForm(wx.Panel):
         self.create_field("Confirm Password*", self.confirm_input)
         
         self.department_combo = wx.ComboBox(self, size=ctrl_size)
-        self.department_combo.Bind(wx.EVT_COMBOBOX, self.on_department_combo)
+        self.department_combo.Bind(wx.EVT_TEXT, partial(self.on_combo,
+                                                      "department"))
         self.create_field("Department*", self.department_combo)
         self.set_department_list(dept_combo_list)
         
@@ -105,115 +111,81 @@ class UserForm(wx.Panel):
         self.flex_gridsizer.Add(ctrl, flag=wx.ALIGN_CENTER)
         
     def on_update_panel(self, event):
-        event_ob = event.EventObject
-        if event_ob.Enabled != bool(self.user):
-            event.Enable(not event_ob.Enabled)
-        
+        event.Enable(isinstance(self.user, UserVo))
+
     def on_update_submit(self, event):
-        if not self.IsEnabled():
-            event.Skip()
-            return
-        
-        event_ob = event.EventObject
-        if self.mode == self.MODE_ADD:
-            event_ob.SetLabel("Add User")
+        if isinstance(self.user, UserVo):
+            event_ob = event.EventObject
+            if self.mode == self.MODE_ADD:
+                event_ob.SetLabel("Add User")
+            else:
+                event_ob.SetLabel("Update Profile")
+                
+            is_valid = all(
+                [self.user.is_valid,
+                 self.confirm_input.GetValue() == self.password_input.GetValue()])
+                
+            event.Enable(is_valid)
+            
         else:
-            event_ob.SetLabel("Update Profile")
-            
-        is_valid = all([self.user.is_valid,
-                        self.confirm_input.GetValue() == self.user.password])
-            
-        if event_ob.Enabled != is_valid:
-            event.Enable(not event_ob.Enabled)
+            event.Skip()
             
     def on_update_username_input(self, event):
-        if not self.IsEnabled():
+        if isinstance(self.user, UserVo):
+            event.Enable(self.mode == UserForm.MODE_ADD)
+        else:
             event.Skip()
-            return
-        
-        event_ob = event.EventObject
-        if event_ob.Enabled != bool(self.mode == UserForm.MODE_ADD):
-            event.Enable(not event_ob.Enabled)
             
-    def on_first_name_input(self, event):
-        self.user.first_name = event.String
+    def on_input(self, user_field, event):
+        setattr(self.user, user_field, event.String)
         
-    def on_last_name_input(self, event):
-        self.user.last_name = event.String
-        
-    def on_email_input(self, event):
-        self.user.email = event.String
-        
-    def on_username_input(self, event):
-        self.user.user_name = event.String
-        
-    def on_password_input(self, event):
-        self.user.password = event.String
-        
-    def on_department_combo(self, event):
-        ordinal = event.ClientData
-        dept = [item for item in dept_combo_list if item.ordinal == ordinal][0]
-        self.user.department = dept
-            
+    def on_combo(self, user_field, event):
+        setattr(self.user, user_field, event.ClientData)
+
     def set_department_list(self, dept_list_enum):
         self.department_combo.Clear()
         for dept_enum_item in dept_list_enum: 
             self.department_combo.Append(dept_enum_item.value,
-                                         dept_enum_item.ordinal)
+                                         dept_enum_item)
         self.department_combo.SetSelection(0)
+        
+    def set_selected_department(self, department):
+        for index in range(self.department_combo.GetCount()):
+            if self.department_combo.GetClientData(index) == department:
+                self.department_combo.SetSelection(index)
         
     def set_user(self, user_vo=None, mode=None):
         self.mode = mode or self.MODE_ADD
-        self.user = user_vo or UserVo()
-        self.set_input(self.user.password, self.confirm_input)
-        self.set_user_vo_binds()
-        if not user_vo:
-            self.user = None
-        
+        if user_vo:
+            self.user = user_vo.get_copy()
+            self.populate_from_user()
+        else:
+            self.reset()
+            
+    def populate_from_user(self):
+        self.first_name_input.ChangeValue("%s" % self.user.first_name)
+        self.last_name_input.ChangeValue("%s" % self.user.last_name)
+        self.email_input.ChangeValue("%s" % self.user.email)
+        self.username_input.ChangeValue("%s" % self.user.user_name)
+        self.username_label.SetLabel("%s" % self.user.user_name)
+        self.password_input.ChangeValue("%s" % self.user.password)
+        self.confirm_input.ChangeValue("%s" % self.user.password)
+        self.set_selected_department(self.user.department)
+        self.Layout()
         self.first_name_input.SetFocus()
         self.first_name_input.SetInsertionPointEnd()
         
-    def set_user_vo_binds(self):
-        obs_attr(self.user, "first_name", self.set_first_name_input)
-        obs_attr(self.user, "last_name", self.set_last_name_input)
-        obs_attr(self.user, "email", self.set_email_input)
-        obs_attr(self.user, "user_name", self.set_username_input)
-        obs_attr(self.user, "user_name", self.set_username_label)
-        obs_attr(self.user, "password", self.set_password_input)
-        obs_attr(self.user, "department", self.set_dept_combo)
+    def reset(self):
+        self.user = UserVo()
+        self.populate_from_user()
+        self.user = None
 
-    def set_input(self, value, ctrl):
-        insertion_point = ctrl.GetInsertionPoint()
-        ctrl.ChangeValue("%s" % value)
-        ctrl.SetInsertionPoint(insertion_point)
-        
-    def set_first_name_input(self, value):
-        self.set_input(value, self.first_name_input)
-        
-    def set_last_name_input(self, value):
-        self.set_input(value, self.last_name_input)
-        
-    def set_email_input(self, value):
-        self.set_input(value, self.email_input)
-        
-    def set_username_input(self, value):
-        self.set_input(value, self.username_input)
-
-    def set_password_input(self, value):
-        self.set_input(value, self.password_input)
-        
-    def set_dept_combo(self, value):
-        self.department_combo.SetSelection(dept_combo_list.index(value))
-
-    def set_username_label(self, value):
-        self.username_label.SetLabel(value)
-        self.Layout()
-    
-    def on_submit(self, event):        
+    def on_submit(self, event):   
         if self.mode == self.MODE_ADD:
             evt = self.AddEvent(self.Id)
         else:
             evt = self.UpdateEvent(self.Id)
+        
         wx.PostEvent(self, evt)
         event.Skip()
     
@@ -234,4 +206,5 @@ if __name__ == '__main__':
     frame.Fit()
     frame.Show()
     panel.set_user(test_user_list_data[1], UserForm.MODE_EDIT)
+    panel.set_user(UserVo(), UserForm.MODE_ADD)
     wxapp.MainLoop()
